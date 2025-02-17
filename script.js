@@ -3,20 +3,107 @@ class Calculator {
         this.currentInput = '';
         this.firstOperand = null;
         this.operation = null;
+        this.history = [];
+        this.currentHistoryIndex = -1;
+        this.undoStack = [];
+        this.redoStack = [];
+        
+        // Load history from localStorage
+        this.loadHistory();
+        this.updateHistoryDisplay();
+        
         this.ERROR_MESSAGE = "Error";
         this.MAX_DISPLAY_DIGITS = 10;
         this.INITIAL_DISPLAY = '0';
-        this.history = [];
-        this.undoStack = [];
-        this.redoStack = [];
-        this.ERROR_MESSAGES = {
-            DIVIDE_BY_ZERO: "Cannot divide by zero",
-            INVALID_INPUT: "Invalid input",
-            OVERFLOW: "Number too large",
-            UNDERFLOW: "Number too small"
-        };
     }
     
+    loadHistory() {
+        const savedHistory = localStorage.getItem('calculatorHistory');
+        if (savedHistory) {
+            this.history = JSON.parse(savedHistory);
+        }
+    }
+
+    saveHistory() {
+        localStorage.setItem('calculatorHistory', JSON.stringify(this.history));
+        this.updateHistoryDisplay();
+    }
+
+    addToHistory(calculation) {
+        this.history.unshift(calculation);
+        if (this.history.length > 10) {
+            this.history.pop();
+        }
+        this.saveHistory();
+    }
+
+    updateHistoryDisplay() {
+        const historyList = document.getElementById('history-list');
+        historyList.innerHTML = '';
+        
+        this.history.forEach((item, index) => {
+            const historyItem = document.createElement('div');
+            historyItem.className = 'history-item';
+            historyItem.textContent = item;
+            historyItem.onclick = () => this.recallFromHistory(index);
+            historyList.appendChild(historyItem);
+        });
+    }
+
+    recallFromHistory(index) {
+        const calculation = this.history[index];
+        const [result] = calculation.split(' = ');
+        this.currentInput = result;
+        this.updateDisplay();
+    }
+
+    clearHistory() {
+        this.history = [];
+        localStorage.removeItem('calculatorHistory');
+        this.updateHistoryDisplay();
+    }
+
+    saveState() {
+        this.undoStack.push({
+            currentInput: this.currentInput,
+            firstOperand: this.firstOperand,
+            operation: this.operation
+        });
+        this.redoStack = [];
+    }
+
+    undo() {
+        if (this.undoStack.length === 0) return;
+        
+        const currentState = {
+            currentInput: this.currentInput,
+            firstOperand: this.firstOperand,
+            operation: this.operation
+        };
+        
+        this.redoStack.push(currentState);
+        const previousState = this.undoStack.pop();
+        
+        Object.assign(this, previousState);
+        this.updateDisplay();
+    }
+
+    redo() {
+        if (this.redoStack.length === 0) return;
+        
+        const currentState = {
+            currentInput: this.currentInput,
+            firstOperand: this.firstOperand,
+            operation: this.operation
+        };
+        
+        this.undoStack.push(currentState);
+        const nextState = this.redoStack.pop();
+        
+        Object.assign(this, nextState);
+        this.updateDisplay();
+    }
+
     appendNumber(number) {
         if (typeof number !== 'string' || !/^[0-9.]$/.test(number)) {
             return;
@@ -30,99 +117,77 @@ class Calculator {
             return;
         }
         
-        if (this.operation && this.currentInput === '') {
-            this.currentInput = number;
-        } else {
-            this.currentInput += number;
-        }
+        this.currentInput += number;
         this.updateDisplay();
     }
 
     setOperation(op) {
-        const validOperations = ['add', 'subtract', 'multiply', 'divide'];
-        if (!validOperations.includes(op)) {
-            return;
-        }
-
-        if (this.currentInput === '' && this.firstOperand !== null) {
-            this.operation = op;
-            return;
-        }
+        if (this.currentInput === '') return;
 
         if (this.firstOperand === null) {
             this.firstOperand = parseFloat(this.currentInput);
-        } else {
+        } else if (this.operation) {
             this.calculateResult();
             this.firstOperand = parseFloat(this.currentInput);
         }
         this.operation = op;
         this.currentInput = '';
+        this.updateCalculationHistory();
     }
 
     calculateResult() {
+        if (!this.operation || !this.firstOperand) return;
+
         const secondOperand = parseFloat(this.currentInput);
-        if (this.operation && !isNaN(secondOperand)) {
-            const firstOp = this.firstOperand;
-            try {
-                switch (this.operation) {
-                    case 'add':
-                        this.currentInput = (this.firstOperand + secondOperand).toString();
-                        break;
-                    case 'subtract':
-                        this.currentInput = (this.firstOperand - secondOperand).toString();
-                        break;
-                    case 'multiply':
-                        this.currentInput = (this.firstOperand * secondOperand).toString();
-                        break;
-                    case 'divide':
-                        if (secondOperand === 0) {
-                            this.setError('DIVIDE_BY_ZERO');
-                            return;
-                        }
-                        this.currentInput = (this.firstOperand / secondOperand).toString();
-                        break;
-                }
-                
-                // Check for overflow/underflow
-                if (Math.abs(parseFloat(this.currentInput)) > 1e308) {
-                    this.setError('OVERFLOW');
-                    return;
-                }
-                
-                // Add calculation to history
-                this.history.push({
-                    firstOperand: firstOp,
-                    secondOperand: secondOperand,
-                    operation: this.operation,
-                    result: this.currentInput
-                });
-                updateHistoryDisplay();
-            } catch (error) {
-                this.setError('INVALID_INPUT');
+        const calculation = `${this.firstOperand} ${this.getOperationSymbol()} ${secondOperand}`;
+        
+        try {
+            let result;
+            switch (this.operation) {
+                case 'add': result = this.firstOperand + secondOperand; break;
+                case 'subtract': result = this.firstOperand - secondOperand; break;
+                case 'multiply': result = this.firstOperand * secondOperand; break;
+                case 'divide': 
+                    if (secondOperand === 0) throw new Error('Division by zero');
+                    result = this.firstOperand / secondOperand;
+                    break;
             }
+
+            this.currentInput = result.toString();
+            this.addToHistory(`${calculation} = ${result}`);
             this.firstOperand = null;
             this.operation = null;
+            this.saveState();
+            this.updateDisplay();
+        } catch (error) {
+            this.currentInput = 'Error';
+            this.updateDisplay();
+        }
+    }
+
+    getOperationSymbol() {
+        const symbols = {
+            add: '+',
+            subtract: '-',
+            multiply: '×',
+            divide: '÷'
+        };
+        return symbols[this.operation] || '';
+    }
+
+    backspace() {
+        this.currentInput = this.currentInput.slice(0, -1);
+        if (this.currentInput === '') {
+            this.currentInput = '0';
         }
         this.updateDisplay();
     }
 
-    applyPercentage() {
-        if (this.currentInput !== '') {
-            this.currentInput = (parseFloat(this.currentInput) / 100).toString();
-            this.updateDisplay();
-        }
-    }
-
-    applySquareRoot() {
-        if (this.currentInput !== '') {
-            const number = parseFloat(this.currentInput);
-            if (number < 0) {
-                this.currentInput = this.ERROR_MESSAGE;
-            } else {
-                this.currentInput = Math.sqrt(number).toString();
-            }
-            this.updateDisplay();
-        }
+    percentage() {
+        if (this.currentInput === '') return;
+        const value = parseFloat(this.currentInput);
+        this.currentInput = (value / 100).toString();
+        this.updateDisplay();
     }
 
     clearDisplay() {
@@ -130,96 +195,32 @@ class Calculator {
         this.firstOperand = null;
         this.operation = null;
         this.updateDisplay();
+        this.updateCalculationHistory();
     }
 
     updateDisplay() {
         const display = document.getElementById('display');
-        if (!display) {
-            console.error('Display element not found!');
-            return;
-        }
+        if (!display) return;
         
-        if (this.currentInput === this.ERROR_MESSAGE) {
-            display.value = this.ERROR_MESSAGE;
+        display.value = this.currentInput === this.ERROR_MESSAGE ? 
+            this.ERROR_MESSAGE : 
+            this.currentInput || this.INITIAL_DISPLAY;
+    }
+
+    updateCalculationHistory() {
+        const historyDisplay = document.getElementById('calculation-history');
+        if (!historyDisplay) return;
+
+        if (this.firstOperand !== null && this.operation) {
+            historyDisplay.textContent = `${this.firstOperand} ${this.getOperationSymbol()}`;
         } else {
-            const numberToDisplay = this.currentInput || this.INITIAL_DISPLAY;
-            display.value = Number(numberToDisplay).toLocaleString('en-US', {
-                maximumFractionDigits: this.MAX_DISPLAY_DIGITS,
-                useGrouping: false
-            });
+            historyDisplay.textContent = '';
         }
-    }
-
-    showHistory() {
-        return this.history.map(entry => 
-            `${entry.firstOperand} ${this.getOperationSymbol(entry.operation)} ${entry.secondOperand} = ${entry.result}`
-        );
-    }
-    
-    getOperationSymbol(op) {
-        const symbols = {
-            add: '+',
-            subtract: '-',
-            multiply: '×',
-            divide: '÷'
-        };
-        return symbols[op] || op;
-    }
-
-    saveState() {
-        this.undoStack.push({
-            currentInput: this.currentInput,
-            firstOperand: this.firstOperand,
-            operation: this.operation
-        });
-        this.redoStack = []; // Clear redo stack on new action
-    }
-    
-    undo() {
-        if (this.undoStack.length > 0) {
-            const currentState = {
-                currentInput: this.currentInput,
-                firstOperand: this.firstOperand,
-                operation: this.operation
-            };
-            this.redoStack.push(currentState);
-            
-            const previousState = this.undoStack.pop();
-            Object.assign(this, previousState);
-            this.updateDisplay();
-        }
-    }
-    
-    redo() {
-        if (this.redoStack.length > 0) {
-            const currentState = {
-                currentInput: this.currentInput,
-                firstOperand: this.firstOperand,
-                operation: this.operation
-            };
-            this.undoStack.push(currentState);
-            
-            const nextState = this.redoStack.pop();
-            Object.assign(this, nextState);
-            this.updateDisplay();
-        }
-    }
-
-    setError(errorType) {
-        this.currentInput = this.ERROR_MESSAGES[errorType] || this.ERROR_MESSAGE;
-        this.updateDisplay();
-    }
-
-    clearHistory() {
-        this.history = [];
-        updateHistoryDisplay();
     }
 }
 
-// Create calculator instance
 const calculator = new Calculator();
 
-// Add keyboard support
 document.addEventListener('keydown', (event) => {
     if (/[0-9.]/.test(event.key)) {
         calculator.appendNumber(event.key);
@@ -237,11 +238,3 @@ document.addEventListener('keydown', (event) => {
         calculator.clearDisplay();
     }
 });
-
-function updateHistoryDisplay() {
-    const historyPanel = document.getElementById('history');
-    const historyItems = calculator.showHistory().reverse().slice(0, 10);
-    historyPanel.innerHTML = historyItems.map(item => 
-        `<div class="history-item">${item}</div>`
-    ).join('');
-}

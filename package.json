@@ -4,22 +4,15 @@
   "description": "A simple calculator application",
   "main": "index.html",
   "scripts": {
-    "start": "http-server -c-1 .",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "http-server -c-1 ."
   },
   "keywords": [
     "calculator",
-    "arithmetic",
-    "JavaScript",
     "web-app"
   ],
   "author": "Your Name",
   "license": "ISC",
   "devDependencies": {
     "http-server": "^14.0.0"
-  },
-  "bugs": {
-    "url": "https://github.com/yourusername/calculator-app/issues"
-  },
-  "homepage": "https://github.com/yourusername/calculator-app#readme"
+  }
 }
