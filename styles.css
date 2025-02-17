@@ -1,0 +1,139 @@
+:root {
+    --primary-color: #f4f4f4;
+    --button-bg: #f0f0f0;
+    --button-hover: #e0e0e0;
+    --operator-bg: black;
+    --operator-hover: #333;
+    --equals-bg: #666;
+    --equals-hover: #555;
+    --clear-bg: red;
+    --clear-hover: darkred;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    background-color: var(--primary-color);
+}
+
+.calculator {
+    background: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    width: 300px;
+}
+
+.calculator h1 {
+    text-align: center;
+    color: #333;
+    margin: 0 0 20px 0;
+    font-size: 24px;
+}
+
+input[type="text"] {
+    width: 100%;
+    padding: 15px;
+    margin-bottom: 15px;
+    box-sizing: border-box;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 18px;
+    text-align: right;
+}
+
+.buttons {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+}
+
+button {
+    padding: 15px;
+    font-size: 18px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    background-color: var(--button-bg);
+}
+
+button:hover {
+    background-color: var(--button-hover);
+}
+
+button.operator, button.special {
+    background-color: var(--operator-bg);
+    color: white;
+}
+
+button.operator:hover, button.special:hover {
+    background-color: var(--operator-hover);
+}
+
+button.equals {
+    background-color: var(--equals-bg);
+    color: white;
+    grid-column: span 2;
+}
+
+button.equals:hover {
+    background-color: var(--equals-hover);
+}
+
+button.clear {
+    background-color: var(--clear-bg);
+    color: white;
+}
+
+button.clear:hover {
+    background-color: var(--clear-hover);
+}
+
+.history-panel {
+    margin-top: 20px;
+    max-height: 150px;
+    overflow-y: auto;
+    border-top: 1px solid #ccc;
+    padding-top: 10px;
+}
+
+.history-item {
+    padding: 5px;
+    border-bottom: 1px solid #eee;
+    font-size: 14px;
+}
+
+.undo-redo {
+    display: flex;
+    gap: 5px;
+    margin-bottom: 10px;
+}
+
+.undo-redo button {
+    flex: 1;
+    padding: 8px;
+    font-size: 14px;
+}
+
+.history-controls {
+    margin-top: 10px;
+    text-align: right;
+}
+
+.clear-history {
+    background-color: var(--clear-bg);
+    color: white;
+    padding: 8px 15px;
+    font-size: 14px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.clear-history:hover {
+    background-color: var(--clear-hover);
+}
