@@ -5,18 +5,30 @@
     --button-hover: #404040;       /* Button hover state */
     --operator-color: #ff9500;     /* Operator button color */
     --clear-color: #ff3b30;        /* Clear/delete button color */
+    --text-color: #ffffff;         /* Text color */
+    --display-bg: #ffffff;         /* Display background */
+    --display-text: #000000;       /* Display text color */
+    --body-bg: #f5f6fa;            /* Body background */
+}
+
+/* Dark mode color scheme */
+.dark-mode {
+    --body-bg: #121212;
+    --display-bg: #333333;
+    --display-text: #ffffff;
 }
 
 /* Basic page layout */
 body {
     font-family: 'Segoe UI', Arial, sans-serif;
-    background-color: #f5f6fa;
+    background-color: var(--body-bg);
     margin: 0;
     padding: 20px;
     min-height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
+    transition: background-color 0.3s ease;
 }
 
 /* Main calculator container */
@@ -25,28 +37,43 @@ body {
     padding: 20px;
     border-radius: 10px;
     width: 300px;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.19), 0 6px 6px rgba(0, 0, 0, 0.23);
 }
 
 /* Calculator title */
 .calculator-title {
-    color: rgb(255, 255, 255);
+    color: var(--text-color);
     text-align: center;
     margin: 0 0 20px 0;
     font-size: 24px;
     font-weight: 600;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Theme toggle button */
+.theme-toggle {
+    background: none;
+    border: none;
+    color: var(--text-color);
+    cursor: pointer;
+    font-size: 18px;
+    padding: 5px;
 }
 
 /* Display section */
 .display-container {
     margin-bottom: 20px;
-    background: white;
+    background: var(--display-bg);
     border: 2px solid black;
     border-radius: 8px;
     padding: 10px;
+    position: relative;
 }
 
 #calculation-history {
-    color: black;
+    color: var(--display-text);
     opacity: 0.7;
     text-align: right;
     font-size: 14px;
@@ -58,7 +85,7 @@ body {
     width: 100%;
     border: none;
     background: transparent;
-    color: black;
+    color: var(--display-text);
     font-size: 28px;
     text-align: right;
     padding: 5px 0;
@@ -88,6 +115,12 @@ button:hover {
     background: var(--button-hover);
 }
 
+/* Focus state for accessibility */
+button:focus {
+    outline: 2px solid var(--operator-color);
+    outline-offset: 2px;
+}
+
 button.operator {
     background: var(--operator-color);
 }
@@ -106,7 +139,7 @@ button.clear {
 }
 
 .history-item {
-    color: white;
+    color: var(--text-color);
     opacity: 0.8;
     padding: 8px 0;
     text-align: right;
@@ -133,5 +166,26 @@ button.clear {
     .calculator-container {
         width: 100%;
         max-width: 320px;
+    }
+}
+
+/* Print styles */
+@media print {
+    body {
+        background-color: white;
+    }
+    
+    .calculator-container {
+        box-shadow: none;
+        width: 100%;
+    }
+    
+    .buttons, .theme-toggle {
+        display: none;
+    }
+    
+    #history-list {
+        max-height: none;
+        overflow: visible;
     }
 }

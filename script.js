@@ -1,4 +1,8 @@
 class Calculator {
+    /**
+     * Creates a new Calculator instance
+     * @constructor
+     */
     constructor() {
         this.currentInput = '';
         this.firstOperand = null;
@@ -117,6 +121,11 @@ class Calculator {
             return;
         }
         
+        // Limit the number of digits
+        if (number !== '.' && this.currentInput.replace('.', '').length >= this.MAX_DISPLAY_DIGITS) {
+            return;
+        }
+        
         this.currentInput += number;
         this.updateDisplay();
     }
@@ -151,6 +160,11 @@ class Calculator {
                     if (secondOperand === 0) throw new Error('Division by zero');
                     result = this.firstOperand / secondOperand;
                     break;
+            }
+
+            // Format the result to avoid overly long numbers
+            if (result.toString().length > this.MAX_DISPLAY_DIGITS) {
+                result = parseFloat(result.toPrecision(this.MAX_DISPLAY_DIGITS));
             }
 
             this.currentInput = result.toString();
@@ -205,6 +219,9 @@ class Calculator {
         display.value = this.currentInput === this.ERROR_MESSAGE ? 
             this.ERROR_MESSAGE : 
             this.currentInput || this.INITIAL_DISPLAY;
+            
+        // Update ARIA attributes for accessibility
+        display.setAttribute('aria-label', `Calculator display showing ${display.value}`);
     }
 
     updateCalculationHistory() {
@@ -217,9 +234,33 @@ class Calculator {
             historyDisplay.textContent = '';
         }
     }
+
+    /**
+     * Toggle between light and dark mode
+     */
+    toggleTheme() {
+        document.body.classList.toggle('dark-mode');
+        localStorage.setItem('calculator-theme', 
+            document.body.classList.contains('dark-mode') ? 'dark' : 'light');
+    }
 }
 
 const calculator = new Calculator();
+
+// Initialize theme from localStorage
+document.addEventListener('DOMContentLoaded', () => {
+    const savedTheme = localStorage.getItem('calculator-theme');
+    if (savedTheme === 'dark') {
+        document.body.classList.add('dark-mode');
+    }
+    
+    // Set up accessibility attributes
+    const buttons = document.querySelectorAll('.buttons button');
+    buttons.forEach(button => {
+        const text = button.textContent.trim();
+        button.setAttribute('aria-label', text);
+    });
+});
 
 document.addEventListener('keydown', (event) => {
     if (/[0-9.]/.test(event.key)) {
@@ -236,5 +277,7 @@ document.addEventListener('keydown', (event) => {
         calculator.calculateResult();
     } else if (event.key === 'Escape') {
         calculator.clearDisplay();
+    } else if (event.key === 'Backspace') {
+        calculator.backspace();
     }
 });

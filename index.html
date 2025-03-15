@@ -5,43 +5,49 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Calculator</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <script src="script.js" defer></script>
 </head>
 <body>
     <div class="calculator-container">
-        <h1 class="calculator-title">Calculator</h1>
+        <div class="calculator-title">
+            <span>Calculator</span>
+            <button class="theme-toggle" onclick="calculator.toggleTheme()" aria-label="Toggle dark/light mode">
+                <i class="fas fa-moon"></i>
+            </button>
+        </div>
         <div class="display-container">
-            <div id="calculation-history"></div>
-            <input type="text" id="display" readonly>
+            <div id="calculation-history" aria-live="polite"></div>
+            <input type="text" id="display" readonly aria-label="Calculator display">
         </div>
         <div class="buttons">
-            <button onclick="calculator.clearDisplay()" class="clear">C</button>
-            <button onclick="calculator.backspace()">⌫</button>
-            <button onclick="calculator.percentage()">%</button>
-            <button onclick="calculator.setOperation('divide')" class="operator">÷</button>
+            <button onclick="calculator.clearDisplay()" class="clear" aria-label="Clear">C</button>
+            <button onclick="calculator.backspace()" aria-label="Backspace">⌫</button>
+            <button onclick="calculator.percentage()" aria-label="Percentage">%</button>
+            <button onclick="calculator.setOperation('divide')" class="operator" aria-label="Divide">÷</button>
             
             <button onclick="calculator.appendNumber('7')">7</button>
             <button onclick="calculator.appendNumber('8')">8</button>
             <button onclick="calculator.appendNumber('9')">9</button>
-            <button onclick="calculator.setOperation('multiply')" class="operator">×</button>
+            <button onclick="calculator.setOperation('multiply')" class="operator" aria-label="Multiply">×</button>
             
             <button onclick="calculator.appendNumber('4')">4</button>
             <button onclick="calculator.appendNumber('5')">5</button>
             <button onclick="calculator.appendNumber('6')">6</button>
-            <button onclick="calculator.setOperation('subtract')" class="operator">−</button>
+            <button onclick="calculator.setOperation('subtract')" class="operator" aria-label="Subtract">−</button>
             
             <button onclick="calculator.appendNumber('1')">1</button>
             <button onclick="calculator.appendNumber('2')">2</button>
             <button onclick="calculator.appendNumber('3')">3</button>
-            <button onclick="calculator.setOperation('add')" class="operator">+</button>
+            <button onclick="calculator.setOperation('add')" class="operator" aria-label="Add">+</button>
             
             <button onclick="calculator.appendNumber('0')">0</button>
             <button onclick="calculator.appendNumber('.')">.</button>
-            <button onclick="calculator.calculateResult()" class="operator" style="grid-column: span 2;">=</button>
+            <button onclick="calculator.calculateResult()" class="operator" style="grid-column: span 2;" aria-label="Equals">=</button>
         </div>
-        <div id="history-list"></div>
+        <div id="history-list" aria-label="Calculation history"></div>
         <div class="history-controls">
-            <button onclick="calculator.clearHistory()">Clear History</button>
+            <button onclick="calculator.clearHistory()" aria-label="Clear history">Clear History</button>
         </div>
     </div>
 </body>
